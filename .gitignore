@@ -1,0 +1,33 @@
+﻿# Maven
+**/target/
+**/build/
+.mvn/wrapper/maven-wrapper.jar
+
+# IDE
+**/.idea/
+**/*.iml
+**/*.iws
+**/*.ipr
+.vscode/
+
+# Java
+*.class
+*.log
+
+# Security - NEVER COMMIT PRIVATE KEYS
+**/private.pem
+**/*private*.pem
+**/*.key
+**/*.jks
+**/*.p12
+**/*.pfx
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
