@@ -13,6 +13,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
@@ -114,21 +116,35 @@ public class EtudiantService {
         return etudiantMapper.toDto(etudiant, filiere);
     }
 
+    private ResponseEtudiantDto toDto(Etudiant etudiant) {
+        FiliereSnapshot filiere = filiereSnapshotRepository.findById(etudiant.getFiliereId())
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.CONFLICT,
+                        "Filiere non synchronisee : " + etudiant.getFiliereId()
+                ));
+        return etudiantMapper.toDto(etudiant, filiere);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ResponseEtudiantDto> allPaginated(Pageable pageable) {
+        return etudiantRepository.findAll(pageable).map(this::toDto);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ResponseEtudiantDto> byFiliere(Long filiereId, Pageable pageable) {
+        filiereSnapshotRepository.findById(filiereId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Filiere introuvable : " + filiereId
+                ));
+        return etudiantRepository.findByFiliereId(filiereId, pageable).map(this::toDto);
+    }
+
     @Transactional(readOnly = true)
     public List<ResponseEtudiantDto> afficherTous() {
-
         return etudiantRepository.findAll()
                 .stream()
-                .map(etudiant -> {
-                    FiliereSnapshot filiere =
-                            filiereSnapshotRepository.findById(etudiant.getFiliereId())
-                                    .orElseThrow(() -> new ResponseStatusException(
-                                            HttpStatus.CONFLICT,
-                                            "Filiere non synchronisee : " + etudiant.getFiliereId()
-                                    ));
-
-                    return etudiantMapper.toDto(etudiant, filiere);
-                })
+                .map(this::toDto)
                 .toList();
     }
 }
